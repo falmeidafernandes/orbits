@@ -1,0 +1,65 @@
+#
+#   VizieR Astronomical Server vizier.u-strasbg.fr
+#    Date: 2018-08-04T17:32:11 [V1.99+ (14-Oct-2013)]
+#   In case of problem, please report to:	cds-question@unistra.fr
+#
+#
+#Coosys	J2000:	eq_FK5 J2000
+#INFO	votable-version=1.99+ (14-Oct-2013)	
+#INFO	-ref=VIZ5b65d78b5e8b	
+#INFO	-out.max=10	
+#INFO	queryParameters=21	
+#-oc.form=dec
+#-out.max=10
+#-out.add=_RAJ,_DEJ
+#-sort=_r
+#-order=I
+#-out.src=J/A+A/530/A138/catalog
+#-nav=cat:J/A+A/530/A138&tab:{J/A+A/530/A138/catalog}&key:source=J/A+A/530/A138/catalog&HTTPPRM:&&-ref=VIZ5b65d78b5e8b&-out.max=10&-out.form=HTML Table&-out.add=_RAJ,_DEJ&-sort=_r&-oc.form=sexa&-c.eq=J2000&-c.r=  2&-c.u=arcmin&-c.geom=r&-order=I&-out=Name&-ignore=H09=*&H09=H09&-out=plx&-out=RV&-out=pmRA&-out=pmDE&-out=Rmin&-out=Rmax&-out=ecc&-out=zmax&-file=.&-meta.ucd=2&-meta=1&-meta.foot=1&-usenav=1&-bmark=POST&-out.src=J/A+A/530/A138/catalog
+#-c.eq=J2000
+#-c.r=  2
+#-c.u=arcmin
+#-c.geom=r
+#-source=J/A+A/530/A138/catalog
+#-out=Name
+#-out=plx
+#-out=RV
+#-out=pmRA
+#-out=pmDE
+#-out=Rmin
+#-out=Rmax
+#-out=ecc
+#-out=zmax
+#
+
+#RESOURCE=yCat_35300138
+#Name: J/A+A/530/A138
+#Title: Geneva-Copenhagen survey re-analysis (Casagrande+, 2011)
+#Table	J_A_A_530_A138_catalog:
+#Name: J/A+A/530/A138/catalog
+#Title: *Stellar parameters
+#Column	_RAJ2000	(F10.6)	Right ascension (FK5, Equinox=J2000.0) at Epoch=J2000, proper motions taken into account 	[ucd=pos.eq.ra]
+#Column	_DEJ2000	(F10.6)	Declination (FK5, Equinox=J2000.0) at Epoch=J2000, proper motions taken into account 	[ucd=pos.eq.dec]
+#Column	Name	(a12)	Other name (3)	[ucd=meta.id]
+#Column	plx	(F6.2)	HIP parallax (4)	[ucd=pos.parallax.trig]
+#Column	RV	(F6.1)	? GCSI Mean radial velocity	[ucd=spect.dopplerVeloc;stat.mean]
+#Column	pmRA	(I5)	? GCSI Proper motion in RA [NULL integer written as an empty string]	[ucd=pos.pm;pos.eq.ra]
+#Column	pmDE	(I5)	? GCSI Proper motion in DE [NULL integer written as an empty string]	[ucd=pos.pm;pos.eq.dec]
+#Column	Rmin	(F6.2)	? GCSIII Perigalactic distance	[ucd=src.orbital]
+#Column	Rmax	(F6.2)	? GCSIII Apogalactic distance	[ucd=src.orbital]
+#Column	ecc	(F5.2)	? GCSIII Eccentricity of galactic orbit	[ucd=src.orbital.eccentricity;pos.galactic]
+#Column	zmax	(F5.2)	? GCSIII Max distance from galactic plane	[ucd=src.orbital]
+_RAJ2000|_DEJ2000|Name|plx|RV|pmRA|pmDE|Rmin|Rmax|ecc|zmax
+deg|deg| |mas|km/s|mas/a|mas/a|kpc|kpc| |kpc
+----------|----------|------------|------|------|-----|-----|------|------|-----|-----
+001.280833|-52.151667|HD 23       | 23.86|  34.3| -111| -131|  6.39|  8.88| 0.16| 0.14
+001.368333|-61.225833|HD 67       | 19.54|   6.3|   84|  -78|  6.72|  7.98| 0.09| 0.13
+001.477917|+18.235000|HD 101      | 26.93| -45.6| -149| -151|  5.88|  8.81| 0.20| 0.42
+001.468750|-41.753056|HD 105      | 25.39|   1.6|   99|  -76|  7.05|  7.99| 0.06| 0.09
+001.608333|+42.752500|HD 153      |  9.38| -31.8|   78|   -1|  5.77|  8.07| 0.17| 0.16
+001.603750|-18.038056|HD 156      |  7.04|  13.6|   16|    1|  7.99|  8.25| 0.02| 0.18
+001.664583|-24.620833|HD 189      |  5.70|   7.6|  -25|  -69|  6.08|  8.63| 0.17| 0.14
+001.695417| -4.350000|HD 200      |  9.03|  -0.2|   59|  -88|  5.53|  8.01| 0.18| 0.26
+001.708333|-23.107500|HD 203      | 25.39|   6.5|   97|  -47|  7.40|  8.00| 0.04| 0.05
+001.843750|-25.356389|HD 268      | 19.90|   8.4|  213| -133|  5.48|  8.07| 0.19| 0.17
+
