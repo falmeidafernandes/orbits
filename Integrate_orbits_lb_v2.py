@@ -1,4 +1,4 @@
-# Import libraries
+    # Import libraries
 import numpy as np
 import galpy
 from galpy.orbit import Orbit
@@ -7,11 +7,13 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 from matplotlib import pyplot as plt
 
+RUN = True # True, integrates orbit and saves results; False, loads results
+
 # Galactic model parameters
 ro = 8.0  # kpc
 vo = 220.0  # km/s
-ti = -0.15 # Gyr
-tf = 0.15 # Gyr
+ti = -0.10 # Gyr
+tf = 0.10 # Gyr
 pot = MW14
 solarmotion = 'schoenrich' # or 'hogg' or 'dehnen', or value in [-U,V,W]
 
@@ -42,105 +44,110 @@ b = np.array(b)
 ts_fwd = np.linspace(0, tf, 10000)*u.Gyr
 ts_bwd = np.linspace(0, ti, 10000)*u.Gyr
 
-colors = ["#0000AA", "#AA0000", "#00AA00", "#AA00AA", "#AAAA00", "#00AAAA", "#AA6600", "#AA0066", "#00AA66", "#66AA00", "#0066AA", "#6600AA", "#666666", "#000000", "#000000", "#000000", "#000000", "#000000", "#000000"]
+colors = ["#000000", "#FF0000", "#FF0000", "#000000", "#FF0000", "#FF0000", "#000000", "#000000", "#FF0000", "#000000", "#FF0000", "#FF0000", "#000000"]
+zorders = [2, 4, 4, 2, 4, 4, 2, 2, 4, 2, 4, 4, 2]
 radconv = np.pi/180.
 
-def cut_l(l, b):
-    for i in range(len(l)-1):
-        if np.sign(l[i+1]) != np.sign(l[i]):
-            l[i] = np.nan
-            b[i] = np.nan
+
+def plot_lb(i, ts, plot_extreme = False, save_name = 'fwd', zorder = 1, **kargs):
+    # integrate orbit
+    if RUN:
+        vxvv = [ra[i], dec[i], d[i], pmra[i], pmde[i], rv[i]]
+        o = Orbit(vxvv=vxvv, radec = True, ro = ro, vo = vo, solarmotion = solarmotion)
+        o.integrate(ts, pot, method = 'leapfrog')
+                    
+        # get orbit l and b
+        ll = o.ll(ts)
+        bb = o.bb(ts)
+        
+        np.save("./Orbits/{}/l{}150Myr.npy".format(star_id[i], save_name), ll)
+        np.save("./Orbits/{}/b{}150Myr.npy".format(star_id[i], save_name), bb)
     
-    return l, b 
-
-def plot_lb(i, orbit_fwd, orbit_bwd, alpha = 0.5):
-    l_fwd = orbit_fwd.ll(ts_fwd) # deg
-    b_fwd = orbit_fwd.bb(ts_fwd) # deg
-    l_bwd = orbit_bwd.ll(ts_bwd) # deg
-    b_bwd = orbit_bwd.bb(ts_bwd) # deg
+    else:
+        ll = np.load("./Orbits/{}/l{}150Myr.npy".format(star_id[i], save_name))
+        bb = np.load("./Orbits/{}/b{}150Myr.npy".format(star_id[i], save_name))
     
-    l_fwd[l_fwd > 180] = l_fwd[l_fwd > 180] - 360
-    l_bwd[l_bwd > 180] = l_bwd[l_bwd > 180] - 360
+    Npoints = len(ll)
     
-    l_fwd, b_fwd = cut_l(l_fwd, b_fwd)
-    l_bwd, b_bwd = cut_l(l_bwd, b_bwd)
+    # Find boundary breaks at -180 and 180
+    boundary_breaks = []
     
-    li = orbit_bwd.ll(ti*u.Gyr)
-    bi = orbit_bwd.bb(ti*u.Gyr) 
-    lf = orbit_fwd.ll(tf*u.Gyr)
-    bf = orbit_fwd.bb(tf*u.Gyr)
+    # crossings for 180
+    for j in range(1, Npoints):
+        # crossings for 180+
+        if (ll[j-1] <= 180) and (ll[j] > 180):
+            boundary_breaks.append(j)
+        # crossings for 180-
+        elif (ll[j-1] >= 180) and (ll[j] < 180):
+            boundary_breaks.append(j)
     
-    if li > 180: li = li -360
-    if lf > 180: lf = lf -360
+    boundary_breaks.append(Npoints)
     
-    plt.plot(l_fwd*radconv, b_fwd*radconv, '-', color = colors[i], linewidth = 1, alpha = alpha)
-    plt.plot(l_bwd*radconv, b_bwd*radconv, '--', color = colors[i], linewidth = 1, alpha = alpha)
-    plt.plot(l[i]*radconv, b[i]*radconv, marker = 'o', markeredgecolor = colors[i], color = colors[i], alpha = alpha)
-    plt.plot(li*radconv, bi*radconv, marker = 'o', markersize = 4, markeredgecolor = colors[i], color = "#FFFFFF", alpha = alpha)
-    plt.plot(lf*radconv, bf*radconv, marker = 'o', markersize = 4, markeredgecolor = colors[i], color = "#000000", alpha = alpha)
-
+    # fix ll > 180
+    ll[ll > 180] = ll[ll > 180] - 360
     
-plt.figure()
-plt.subplot(111, projection="aitoff")
-
-for i in range(Nstars):  
-    print "Integrating orbit for {0}".format(star_id[i])
+    # plots
+    j0 = 0
+    for k in range(len(boundary_breaks)):
+        jf = boundary_breaks[k]
+        plt.plot(ll[j0:jf]*radconv, bb[j0:jf]*radconv, zorder = zorder, **kargs)
+        j0 = jf   
     
-    # prepare data
-    vxvv = [ra[i], dec[i], d[i], pmra[i], pmde[i], rv[i]]
-    orbit_fwd = Orbit(vxvv=vxvv, radec = True, ro = ro, vo = vo, solarmotion = solarmotion)
-    orbit_fwd.integrate(ts_fwd, pot, method = 'leapfrog')
-    orbit_bwd = Orbit(vxvv=vxvv, radec = True, ro = ro, vo = vo, solarmotion = solarmotion)
-    orbit_bwd.integrate(ts_bwd, pot, method = 'leapfrog')
+    # plot extremes
+    if plot_extreme == 'lower':
+        lower = plt.plot(ll[-1]*radconv, bb[-1]*radconv, marker = 'x', markersize = 4, color = colors[i], alpha = 1, zorder = zorder + 1)
+        return lower
+        
+    elif plot_extreme == 'upper':
+        upper = plt.plot(ll[-1]*radconv, bb[-1]*radconv, marker = 'o', markersize = 4, markeredgecolor = colors[i], color = "#FFFFFF", alpha = 1, zorder = zorder + 1)
+        return upper
+
+def plot_grid(alpha1 = 0.2, alpha2 = 0.1, N = 1000, **kargs):
+    lgrid = np.linspace(-180, 180, N)*radconv
+    bgrid = np.linspace(-90, 90, N)*radconv
     
-    plot_lb(i, orbit_fwd, orbit_bwd)
-
-plt.show()
-
-i = 4
-
-plt.figure()
-plt.subplot(111, projection="aitoff")
-
-vxvv = [ra[i], dec[i], d[i], pmra[i], pmde[i], rv[i]]
-orbit_fwd = Orbit(vxvv=vxvv, radec = True, ro = ro, vo = vo, solarmotion = solarmotion)
-orbit_fwd.integrate(ts_fwd, pot, method = 'leapfrog')
-orbit_bwd = Orbit(vxvv=vxvv, radec = True, ro = ro, vo = vo, solarmotion = solarmotion)
-orbit_bwd.integrate(ts_bwd, pot, method = 'leapfrog')
+    for l, b in zip([-120, -60, 0, 60, 120], [-60, -30, 0, 30, 60]):
+        plt.plot([l*radconv]*N, bgrid, alpha = alpha1, **kargs)
+        plt.plot(lgrid, [b*radconv]*N, alpha = alpha1, **kargs)
     
-plot_lb(i, orbit_fwd, orbit_bwd)
+    for l, b in zip([-150, -90, -30, 30,  90, 150], [-75, -45, -15, 15, 45, 75]):
+        plt.plot([l*radconv]*N, bgrid, alpha = alpha2, **kargs)
+        plt.plot(lgrid, [b*radconv]*N, alpha = alpha2, **kargs)
+        
 
-plt.show()
+# Individual plots
+if 0:
+    for i in range(13):  
+        print "Integrating and plotting orbit for {0}".format(star_id[i])
+        plt.figure(figsize = (12,6.3))
+        plt.subplot(111, projection="aitoff")
+        plot_grid(alpha1 = 0.2, alpha2 = 0.2, color = '#666666', lw = 1, zorder = 0)
+        current = plt.plot(l[i]*radconv, b[i]*radconv, marker = 'o', markeredgecolor = colors[i], color = colors[i], alpha = 1, zorder = zorders[i]+1)
+        bwd = plot_lb(i, ts_bwd, plot_extreme = 'lower', save_name = 'bwd', color = colors[i], zorder = zorders[i], alpha = 0.5, ls = '--', lw = 2)
+        fwd = plot_lb(i, ts_fwd, plot_extreme = 'upper', save_name = 'fwd', color = colors[i], zorder = zorders[i], alpha = 0.5, ls = '-', lw = 2)
 
-#
-#
+        plt.tick_params(labelbottom=False, labelleft=False)
+        plt.subplots_adjust(bottom = 0.01, top = 0.99, right = 0.99, left = 0.01)
+        plt.savefig("./Orbits_plots/orbit_{0}_lb.png".format(star_id[i]))
+        plt.savefig("./Orbits/{0}/orbit_{0}_lb.pdf".format(star_id[i]))
+        plt.close()
 
-#i = 0
-#vxvv = [ra[i], dec[i], d[i], pmra[i], pmde[i], rv[i]]
-#orbit_fwd = Orbit(vxvv=vxvv, radec = True, ro = ro, vo = vo, solarmotion = solarmotion)
-#orbit_fwd.integrate(ts_fwd, pot, method = 'leapfrog')
-#orbit_bwd = Orbit(vxvv=vxvv, radec = True, ro = ro, vo = vo, solarmotion = solarmotion)
-#orbit_bwd.integrate(ts_bwd, pot, method = 'leapfrog')
+# Plot all
+if 1:
+    plt.figure(figsize = (12,6.3))
+    plt.subplot(111, projection="aitoff")
+    plot_grid(alpha1 = 0.2, alpha2 = 0.2, color = '#666666', lw = 1, zorder = 0)
+    
+    for i in range(13):  
+        print "Integrating and plotting orbit for {0}".format(star_id[i])
+        current = plt.plot(l[i]*radconv, b[i]*radconv, marker = 'o', markeredgecolor = colors[i], color = colors[i], alpha = 1, zorder = zorders[i])
+        bwd = plot_lb(i, ts_bwd, plot_extreme = 'lower', save_name = 'bwd', zorder = zorders[i], color = colors[i], alpha = 0.5, ls = '--', lw = 1)
+        fwd = plot_lb(i, ts_fwd, plot_extreme = 'upper', save_name = 'fwd', zorder = zorders[i], color = colors[i], alpha = 0.5, ls = '-', lw = 1)
 
-#l_fwd = orbit_fwd.ll(ts_fwd) # deg
-#b_fwd = orbit_fwd.bb(ts_fwd) # deg
-#l_bwd = orbit_bwd.ll(ts_bwd) # deg
-#b_bwd = orbit_bwd.bb(ts_bwd) # deg
+    plt.tick_params(labelbottom=False, labelleft=False)
+    plt.subplots_adjust(bottom = 0.01, top = 0.99, right = 0.99, left = 0.01)
+    plt.savefig("lb_plot_100Myr.png")
+    #plt.savefig("lb_plot.pdf")
+    plt.close()
 
-#li = orbit_bwd.ll(ti*u.Gyr)
-#bi = orbit_bwd.bb(ti*u.Gyr) 
-#lf = orbit_fwd.ll(tf*u.Gyr)
-#bf = orbit_fwd.bb(tf*u.Gyr)
-#radconv = np.pi/180.
 
-#plt.figure()
-#plt.subplot(111, projection="aitoff")
-#color="#0000AA"
-#plt.plot(ll_fwd*radconv, bb_fwd*radconv, '-', color = color, linewidth = 1)
-#plt.plot(ll_bwd*radconv, bb_bwd*radconv, '--', color = color, linewidth = 1)
-#plt.plot(l[i]*radconv, b[i]*radconv, marker = 'o', markeredgecolor = color, color = color)
-#plt.plot(li*radconv, bi*radconv, marker = 'o', markersize = 4, markeredgecolor = color, color = "#FFFFFF")
-#plt.plot(lf*radconv, bf*radconv, marker = 'o', markersize = 4, markeredgecolor = color, color = "#000000")
-#plt.show()
-
-#        
